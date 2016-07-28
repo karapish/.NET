@@ -1,0 +1,13 @@
+﻿<Window x:Class="Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <StackPanel>
+        <Button Name="Update" Content="Update" Click="Update_Click"/>
+        <StackPanel Orientation="Horizontal" Margin="10,10,10,10">
+            <Label Name="PortfolioName" Content="{Binding Path=name}" Background="RosyBrown" HorizontalAlignment="Left"/>
+            <DataGrid Name="Positions" ItemsSource="{Binding Path=Positions}" AlternatingRowBackground="LightGray" AlternationCount="2">
+            </DataGrid>
+        </StackPanel>
+    </StackPanel>
+</Window>

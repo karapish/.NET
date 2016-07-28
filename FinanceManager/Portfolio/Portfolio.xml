@@ -1,0 +1,9 @@
+<Portfolio name="My bearish stocks!">
+	<Positions>
+	   <Position ticker="msft" inceptionDate="9/1/2015" shares="5.2"/>
+	   <Position ticker="aapl" inceptionDate="8/2/2015" shares="10"/>
+     <Position ticker="tsla" inceptionDate="3/21/2014" shares="20"/>
+     <Position ticker="amzn" inceptionDate="1/1/2013" shares="100"/>
+	</Positions>
+</Portfolio>
+   
