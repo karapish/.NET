@@ -1,0 +1,257 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:filter="clr-namespace:DataGridFilterLibrary;assembly=DataGridFilterLibrary"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:converters="clr-namespace:TellusResourceAllocatorManagement.ViewModels.Converters"
+        mc:Ignorable="d"
+        x:Class="TellusResourceAllocatorManagement.UI.MainWindow"
+        Title="Tellus - Resource Allocation Management" 
+        WindowState="Normal"
+        Icon="Images\raphael_wrench-3_simple-black_32x32.ico" 
+        Width="724">
+
+    <!--The general UI layout consists of 3 main parts
+        - Upper toolbar with buttons to invoke actions for certain requests
+        - Middle grid with requests and chains info. It includes extensions to filter columns
+        - Lower status bar with progress bar and additional statistics-->
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="8*"/>
+            <RowDefinition Height="25"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="AntiqueWhite" >
+
+            <StackPanel Orientation="Horizontal">
+                <StackPanel Margin="5,0,5,0" Orientation="Vertical">
+                    <TextBlock Text="Choose environment"/>
+
+                    <ComboBox x:Name="EnvironmentSelector" Loaded="EnvironmentSelector_Loaded" SelectionChanged="EnvironmentSelector_SelectionChanged">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <Button Background="AntiqueWhite" BorderThickness="0" x:Name="ReloadButton" ToolTip="Refreshes the chains and requests" HorizontalAlignment="Right" Click="ReloadButton_Click" 
+						Command="{Binding (filter:DataGridExtensions.ClearFilterCommand), ElementName=MainTable}"
+                        Height="24"
+                        Width="24">
+                    <StackPanel>
+                        <Image Source="Images\refresh.png"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="CanelButton" ToolTip="Cancel the selected allocation requests" Click="CancelButton_Click">
+                <StackPanel>
+                    <Image Source="Images\cancel.png"/>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="Cancel"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="StopButton" ToolTip="Send the stop allocation message to the selected requests" Click="StopButton_Click">
+                <StackPanel>
+                    <Image Source="Images\classica_stop-hand_simple-black_32x32.png"/>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="Stop"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="ChangePriorityButton" ToolTip="Adjust the priority of the selected allocation requests" Click="ChangePriorityButton_Click">
+                <StackPanel>
+                    <Image Source="Images\raphael_arrow-exchange-v_simple-black_32x32.png"/>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="Priority"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="SaveButton" ToolTip="Save the current RAM file to a local file (e.g. for offline investigation)" Click="SaveButton_Click">
+                <StackPanel>
+                    <Image Source="Images\bfa_download_simple-black_32x32.png"/>
+                    <TextBlock><Run Text="Save"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="CopySave" ToolTip="Copy relevant chain/request information to clipboard" Click="CopyButton_Click">
+                <StackPanel>
+                    <Image Source="Images\foundation_page-copy_simple-black_32x32.png"/>
+                    <TextBlock><Run Text="Copy"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="FilterButton" ToolTip="Filter the selected allocation requests out to a file. The requests can be reimported later. Filtered requests are removed from the main Resource Allocation queue. Use with Caution" Click="FilterButton_Click">
+                <StackPanel>
+                    <Image Source="Images\foundation_filter_simple-black_32x32.png"/>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="Filter"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="ImportButton" ToolTip="Imports allocation requests that were filtered out to file. Use with Caution" Click="ImportButton_Click">
+                <StackPanel>
+                    <Image Source="Images\bfa_sign-in_simple-black_32x32.png"/>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="Import"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="SendEmailButton" ToolTip="Send application logs to dev Team" Click="EmailButton_Click">
+                <StackPanel>
+                    <Image Source="Images\ocha_telecommunications-e-mail_simple-black_32x32.png"/>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="Log"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <Button Margin="8,0,4,0" Background="AntiqueWhite" BorderThickness="0" x:Name="HelpButton" ToolTip="View help documentation" Click="HelpButton_Click">
+                <StackPanel>
+                    <Image Source="Images\bfa_info_simple-black_32x32.png"/>
+                    <TextBlock HorizontalAlignment="Center"><Run Text="Help"/></TextBlock>
+                </StackPanel>
+            </Button>
+
+            <StackPanel Orientation="Vertical">
+                <CheckBox IsChecked="{Binding (filter:DataGridExtensions.IsFilterVisible), ElementName=MainTable}" Content="Enable _filtering" ToolTip="Hotkey ALT+F"/>
+                <CheckBox x:Name="VerticalScrollingSelector" IsChecked="True" Content="Scroll _vertically" ToolTip="Hotkey ALT+V"/>
+                <CheckBox x:Name="ChainGroupingSelector" Content="Chain _grouping" ToolTip="Hotkey ALT+G" IsChecked="True" Checked="GroupingSelector_Checked" Unchecked="GroupingSelector_Unchecked"/>
+            </StackPanel>
+        </StackPanel>
+
+        <DataGrid
+                Grid.Row="1" 
+			    x:Name="MainTable" 
+                AutoGenerateColumns="false"                
+                AlternationCount="2"
+                AlternatingRowBackground="LightGray"                
+                ColumnHeaderStyle="{StaticResource {ComponentResourceKey TypeInTargetAssembly={x:Type filter:DataGridHeaderFilterControl}, ResourceId=DataGridHeaderFilterControlStyle}}" 
+                CanUserAddRows="False" 
+                CanUserDeleteRows="False" 
+                MouseRightButtonDown="MainTable_MouseRightButtonDown"
+                filter:DataGridExtensions.UseBackgroundWorkerForFiltering="True"
+                HorizontalScrollBarVisibility="Auto"
+                VerticalScrollBarVisibility="Auto"
+                PreviewMouseWheel="MainTable_PreviewMouseWheel"
+                ScrollViewer.CanContentScroll="False"
+                VirtualizingStackPanel.IsVirtualizing="True"
+                VirtualizingStackPanel.VirtualizationMode="Recycling"
+                EnableColumnVirtualization="False"
+                EnableRowVirtualization="True"
+                ScrollViewer.IsDeferredScrollingEnabled="True"
+                
+                >
+            <DataGrid.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}" >
+
+                                        <Expander IsExpanded="True" Background="AntiqueWhite">
+                                            <Expander.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <StackPanel.Resources>
+                                                        <converters:ChainGuidConverter x:Key="ChainConverter" />
+                                                    </StackPanel.Resources>
+
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                    <TextBlock>
+                                                        <TextBlock.Text>
+                                                            <MultiBinding Converter="{StaticResource ChainConverter}">
+                                                                <Binding Path="Name"/>
+                                                                <Binding Path="Items"/>
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Expander.Header>
+                                            <ItemsPresenter />
+                                        </Expander>
+
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <DataGridRowsPresenter/>
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Select">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <CheckBox x:Name="chkRequestSelected" IsChecked="{Binding Selected, Mode=TwoWay}" HorizontalAlignment="Center" Click="SelectedRequest_Click"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn IsReadOnly="True" Header="IsHeadOfChain" Binding="{Binding IsHeadOfChain}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="Priority" filter:DataGridColumnExtensions.IsBetweenFilterControl="True" Binding="{Binding Priority}" Width="100" />
+                <DataGridTextColumn IsReadOnly="True" Header="LastProcessedResult" Binding="{Binding LastProcessedResult}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="LastProcessedTime" Binding="{Binding LastProcessedTime}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="RequestedTime" Binding="{Binding RequestedTime}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="RequestType" Binding="{Binding RequestType}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="UseVirtualStore" Binding="{Binding UseVirtualStore}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="VirtualStoreName" Binding="{Binding VirtualStoreName}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="BranchLevel" Binding="{Binding BuildBranchLevel}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="BuildBranch" Binding="{Binding BuildBranch}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="BuildMajorNumber" Binding="{Binding BuildMajorNumber}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="BuildMinorNumber" Binding="{Binding BuildMinorNumber}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="BuildTimestamp" Binding="{Binding BuildTimestamp}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="MinimumAllocationSize" Binding="{Binding MinimumAllocationSize}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="MaximumAllocationSize" Binding="{Binding MaximumAllocationSize}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="TotalAllocationSize" Binding="{Binding TotalAllocationSize}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="CurrentAllocationSize" Binding="{Binding CurrentAllocationSize}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="TotalPossibleSize" Binding="{Binding TotalPossibleSize}"/>
+
+                <DataGridHyperlinkColumn IsReadOnly="True" Header="FrTedPath" Binding="{Binding FrTedPath}">
+                    <DataGridHyperlinkColumn.ElementStyle>
+                        <Style>
+                            <EventSetter Event="Hyperlink.Click" Handler="FrTedColumn_Click"/>
+                        </Style>
+                    </DataGridHyperlinkColumn.ElementStyle>
+                </DataGridHyperlinkColumn>
+
+                <DataGridTextColumn IsReadOnly="True" Header="Timeout" Binding="{Binding Timeout}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="RequestID" Binding="{Binding Id}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="PivotWasSelected" Binding="{Binding PivotWasSelected}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="SelectedPivot" Binding="{Binding SelectedPivot}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="SelectedEDS" Binding="{Binding SelectedEDS}"/>
+                <DataGridTextColumn IsReadOnly="True" Header="TestPassName" Binding="{Binding TestPassName}"/>
+            </DataGrid.Columns>
+
+        </DataGrid>
+
+        <Grid Grid.Row="2" Background="AntiqueWhite">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="50"/>
+            </Grid.ColumnDefinitions>
+
+            <ProgressBar Grid.Row="0" x:Name="ProgressBar" HorizontalAlignment="Left" Width="150" IsIndeterminate="True" Orientation="Horizontal" Visibility="Hidden" BorderThickness="0"/>
+
+            <TextBlock Grid.Column="1" x:Name="ModelUpdatedDateTime" Text="{Binding LastUpdated}"/>
+
+            <TextBlock Grid.Column="2" x:Name="TotalRequests"  Text="{Binding TotalRequests}"/>
+
+            <TextBlock HorizontalAlignment="Right" Grid.Column="3" Text="Font size"/>
+            <TextBox Grid.Column="4" Text="{Binding FontSize, Mode=OneTime, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" x:Name="FontSizeInput"/>
+            <Button Grid.Column="5" Click="SetFontButton_OnClick" Content="Set"/>
+        </Grid>
+    </Grid>
+</Window>
